@@ -6,7 +6,7 @@ import {
   uploadOnCloudinary,
   deleteFromCloudinaryByUrl,
 } from "../utils/cloudinary.js";
-
+import jwt from "jsonwebtoken";
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -25,6 +25,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
+
   if (
     [fullName, email, username, password].some((field) => field?.trim() === "")
   ) {
@@ -36,11 +37,14 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with this email or usename already exisits");
   }
-  const avatarLocalPath = req.files?.avatar[0]?.path;
+  let avatarLocalPath;
+  if(req.files && Array.isArray(req.files.avatar) && req.files.avatar.length >0){
+    avatarLocalPath = req.files.avatar[0].path;
+  }
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is requried");
   }
-  const avatar = uploadOnCloudinary(avatarLocalPath);
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
   }
