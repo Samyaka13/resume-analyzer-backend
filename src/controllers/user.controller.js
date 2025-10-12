@@ -23,6 +23,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
+//tested
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
 
@@ -38,7 +39,11 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with this email or usename already exisits");
   }
   let avatarLocalPath;
-  if(req.files && Array.isArray(req.files.avatar) && req.files.avatar.length >0){
+  if (
+    req.files &&
+    Array.isArray(req.files.avatar) &&
+    req.files.avatar.length > 0
+  ) {
     avatarLocalPath = req.files.avatar[0].path;
   }
   if (!avatarLocalPath) {
@@ -67,6 +72,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createUser, "User registered Successfully"));
 });
 
+//tested
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
   if (!username && !email) {
@@ -74,11 +80,11 @@ const loginUser = asyncHandler(async (req, res) => {
   }
   const user = await User.findOne({
     $or: [{ username }, { email }],
-  });
+  }).select("+password");
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
-  const isPasswordValid = user.isPasswordValid(password);
+  const isPasswordValid = user.isPasswordCorrect(password);
   if (!isPasswordValid) {
     throw new ApiError(401, "Invalid user credentials");
   }
@@ -109,6 +115,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+//tested
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
@@ -133,6 +140,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged Out"));
 });
+
+//tested
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
@@ -181,10 +190,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
+//tested
 const changeCurrentPassword = asyncHandler(async (req, res) => {
+  console.log(req.body)
   const { oldPassword, newPassword } = req.body;
 
-  const user = await User.findById(req.user?._id);
+  const user = await User.findById(req.user?._id).select("+password");
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
   if (!isPasswordCorrect) {
@@ -199,18 +210,20 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
+//tested
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, "User fetched successfully"));
 });
 
+//tested
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, email } = req.body;
 
   if (!fullName || !email) {
     throw new ApiError(400, "All fields are required");
-  }
+  } 
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
@@ -228,6 +241,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Account details updated successfully"));
 });
 
+//tested
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
