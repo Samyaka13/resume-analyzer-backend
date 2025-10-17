@@ -12,9 +12,11 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
-// app.
+// app
 import userRouter from "./routes/user.routes.js";
-import resumeRouter from './routes/resume.routes.js';
+import resumeRouter from "./routes/resume.routes.js";
+import analysisRouter from "./routes/analysis.routes.js";
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/resumes",resumeRouter);
+app.use("/api/v1/resumes", resumeRouter);
+app.use("/api/v1/analysis", analysisRouter);
 export default app;
