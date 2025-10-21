@@ -1,4 +1,5 @@
 import { Resume } from "../models/resume.model.js";
+import { addParsingJob } from "../queues/parsingQueue.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js"; // Assuming you have an async wrapper
@@ -32,7 +33,7 @@ const uploadResume = asyncHandler(async (req, res) => {
     originalFilename: req.files.resumeFile[0].originalname,
     storagePath: cloudinaryResumeResponse.url,
   });
-
+  await addParsingJob({ resumeId: newResume._id });
   return res
     .status(201)
     .json(new ApiResponse(201, newResume, "Resume Uploaded Successfully"));
@@ -87,6 +88,6 @@ const getResumeById = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, resume,"Resume fetched successfully"));
+    .json(new ApiResponse(200, resume, "Resume fetched successfully"));
 });
 export { uploadResume, getAllUserResumes, deleteResume, getResumeById };

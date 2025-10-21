@@ -1,5 +1,6 @@
 import { Analysis } from "../models/analysis.model.js";
 import { Resume } from "../models/resume.model.js";
+import { addAnalysisJob } from "../queues/analysisQueue.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -11,7 +12,7 @@ const createAnalysis = asyncHandler(async (req, res) => {
   const { resumeId, jobDescriptionText } = req.body;
 
   // 2. Validate the input
-  if (!resumeId || !jobDescriptionText) {
+  if (!resumeId || !jobDescriptionText || jobDescriptionText.trim() === "") {
     throw new ApiError(400, "Resume ID and Job Description are required.");
   }
 
@@ -45,8 +46,7 @@ const createAnalysis = asyncHandler(async (req, res) => {
   });
 
   // 5. Enqueue the background job for processing
-  // TODO: This is where you will add the job to your queue (e.g., BullMQ)
-  // await addAnalysisJob({ analysisId: newAnalysis._id });
+  await addAnalysisJob({ analysisId: newAnalysis._id });
 
   return res
     .status(201)
